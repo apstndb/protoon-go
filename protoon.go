@@ -36,6 +36,20 @@ type MarshalOptions struct {
 	// By default, only populated fields are emitted (matching proto.Range).
 	EmitDefaultValues bool
 
+	// EmitDefaultValuesForTypes emits default fields only for messages whose
+	// descriptor FullName matches one of the listed names. This is useful for
+	// making specific repeated row-like message types tabular without adding
+	// noise to the entire protobuf tree. If EmitDefaultValues is true, this
+	// option is ignored (global wins).
+	EmitDefaultValuesForTypes []protoreflect.FullName
+
+	// EmitDefaultValuesForMessage is a predicate that can be used for more
+	// advanced control over which message types should emit default values.
+	// If both EmitDefaultValuesForTypes and EmitDefaultValuesForMessage are
+	// set, either matching condition enables default emission for that type.
+	// If EmitDefaultValues is true, this option is ignored.
+	EmitDefaultValuesForMessage func(protoreflect.MessageDescriptor) bool
+
 	// ProtoJSONCompat causes the output to match the JSON representation
 	// produced by google.golang.org/protobuf/encoding/protojson.
 	// This affects well-known types (Timestamp, Duration, FieldMask, Any,
@@ -89,13 +103,20 @@ func (o MarshalOptions) marshalMessage(pm protoreflect.Message) (any, error) {
 		return v, nil
 	}
 
+	emitDefaults := o.shouldEmitDefaults(pm.Descriptor())
 	var fields []toon.Field
 
-	if o.EmitDefaultValues {
+	if emitDefaults {
 		desc := pm.Descriptor()
 		for i := 0; i < desc.Fields().Len(); i++ {
 			fd := desc.Fields().Get(i)
 			if fd.ContainingOneof() != nil && !pm.Has(fd) {
+				continue
+			}
+			// For message fields, respect presence: do not emit if not set.
+			// This prevents infinite recursion for self-referencing messages
+			// and avoids noise from empty nested messages.
+			if (fd.Kind() == protoreflect.MessageKind || fd.Kind() == protoreflect.GroupKind) && !pm.Has(fd) {
 				continue
 			}
 			v := pm.Get(fd)
@@ -129,6 +150,22 @@ func (o MarshalOptions) marshalMessage(pm protoreflect.Message) (any, error) {
 	}
 
 	return toon.NewObject(fields...), nil
+}
+
+func (o MarshalOptions) shouldEmitDefaults(md protoreflect.MessageDescriptor) bool {
+	if o.EmitDefaultValues {
+		return true
+	}
+	name := md.FullName()
+	for _, n := range o.EmitDefaultValuesForTypes {
+		if name == n {
+			return true
+		}
+	}
+	if o.EmitDefaultValuesForMessage != nil {
+		return o.EmitDefaultValuesForMessage(md)
+	}
+	return false
 }
 
 func (o MarshalOptions) fieldName(fd protoreflect.FieldDescriptor) string {

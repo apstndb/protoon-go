@@ -70,7 +70,7 @@ func TestMarshalCompany(t *testing.T) {
 	t.Logf("TOON output:\n%s", s)
 
 	// Check that employees use tabular form (same schema objects in array)
-	if !strings.Contains(s, "employees[2]{name,active,age,status}:") {
+	if !strings.Contains(s, "employees[2]{name,age,active,status}:") {
 		t.Errorf("expected tabular form for employees, got:\n%s", s)
 	}
 	if !strings.Contains(s, "name: Acme") {

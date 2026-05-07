@@ -24,10 +24,10 @@ func ExampleMarshal() {
 	fmt.Println(string(b))
 	// Output:
 	// name: Alice
-	// active: true
 	// age: 30
-	// tags[2]: go,proto
+	// active: true
 	// status: 1
+	// tags[2]: go,proto
 }
 
 func ExampleMarshalOptions_emitEnumNames() {
@@ -65,8 +65,6 @@ func ExampleMarshalOptions_emitDefaultValues() {
 	// employees[2]{name,age,active,status}:
 	//   Alice,30,true,1
 	//   Bob,25,false,2
-	// founded_at: "1970-01-01T00:00:00Z"
-	// uptime: 0s
 }
 
 func ExampleMarshal_any() {
