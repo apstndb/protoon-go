@@ -1,5 +1,11 @@
 # protoon-go
 
+**ProtoJSON for [TOON](https://github.com/toon-format/spec)** — a Go package that converts protocol buffer messages to the TOON format.
+
+> **proto + toon = protoon**
+
+This package is modeled after [ProtoJSON](https://protobuf.dev/programming-guides/json/), the canonical JSON mapping for Protocol Buffers. Just as ProtoJSON defines how `proto.Message` values are serialized as JSON, `protoon` defines how they are serialized as TOON — a compact, human-readable format designed for LLM workflows.
+
 Efficiently convert protocol buffer messages to the [TOON](https://github.com/toon-format/spec) format in Go — without an intermediate JSON representation.
 
 ## Features
